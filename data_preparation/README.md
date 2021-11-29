@@ -1,6 +1,6 @@
 ## Dependencies
 Requirements:
-- Download binvox exe: https://www.patrickmin.com/binvox/ (save in data_preparation)
+- Download binvox.exe to data_preparation: https://www.patrickmin.com/binvox/ 
 - Python 3.x with numpy, opencv-python and cython
 
 Build Cython module:
