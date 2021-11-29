@@ -9,13 +9,11 @@ import trimesh
 
 
 class PartNetDataset(Dataset):
-    def __init__(self, phase, data_root, category, n_pts):
+    def __init__(self, phase, data_root, category='chair', n_pts=2048):
         super(PartNetDataset, self).__init__()
-        if phase == "validation":
-            phase = "val"
 
         self.phase = phase
-        self.aug = phase == "train"
+
 
         self.data_root = data_root
 

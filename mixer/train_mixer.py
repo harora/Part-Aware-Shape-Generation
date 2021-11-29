@@ -8,7 +8,7 @@ from dataset import PartNetDataset
 
 # Setup Data
 
-dataset = PartNetDataset()
+dataset = PartNetDataset(phase='train',data_root='/scratch/data_v0/')
 
 # Setup Network
 
