@@ -1,7 +1,7 @@
 ## Instruction for running mixer
 
 ### Install dataset
-The preprocessed files can be found [here](https://www.dropbox.com/s/ovq2zi02fg656vi/processed_pcd.zip?dl=0).
+The preprocessed files can be found [here](https://www.dropbox.com/sh/hxfnhwn4r2sp33e/AADeIqSBO00wXuzFJQYETopKa?dl=0).
 
 ### Folder structure
 ```
