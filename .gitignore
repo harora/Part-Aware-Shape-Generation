@@ -1,1 +1,14 @@
 __pycache__
+.vscode
+
+**.png
+**/**.png
+**/**/**.png
+**/**/**/**.png
+
+**.obj
+**/**.obj
+
+#mac files
+.DS_STORE
+**/.DS_STORE
