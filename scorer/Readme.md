@@ -1,34 +1,47 @@
-# Part-Aware Shape Generation
 
+# Multiple view generation based in Standford Shapenet Renderer
 
+To generate views run:
+```
+$ generateviews.sh test 4
+```
+Where 'test' is the directory where obj files are found, and '4' is the number of views are generated. Default is 12.
 
+# Stanford Shapenet Renderer
 
+A little helper script to render .obj files (such as from the stanford shapenet database) with Blender.
 
+Tested on Linux, but should also work for other operating systems.
+By default, this scripts generates 30 images by rotating the camera around the object.
+Additionally, depth, albedo, normal and id maps are dumped for every image.
 
-## Scorer
+Tested with Blender 2.9
 
-Generation of multiple view from Obj file.
+## Example invocation
 
-Generating 12 views for Chairs in PartNet Using 6 processes
+To render a single `.obj` file, run
 
-find -f ./Chair/models *.obj -print0 | xargs -0 -n1 -P6 -I {} Blender --background --python stanford-shapenet-renderer/render_blender.py -- --views 12 --output_folder ./ChairViews {}
+    blender --background --python render_blender.py -- --output_folder /tmp path_to_model.obj
+    blender --background --python render_blender.py -- test/197.obj
 
+To get raw values that are easiest for further use, use `--format OPEN_EXR`. If the .obj file references any materials defined in a `.mtl` file, it is assumed to be in the same folder with the same name.
 
-Source:
-https://github.com/panmari/stanford-shapenet-renderer
-
-Example invocation
-
-To render a single .obj file, run
-
-blender --background --python render_blender.py -- --output_folder /tmp path_to_model.obj
-To get raw values that are easiest for further use, use --format OPEN_EXR. If the .obj file references any materials defined in a .mtl file, it is assumed to be in the same folder with the same name.
-
-Batch rendering
+## Batch rendering
 
 To render a whole batch, you can e. g. use the unix tool find:
 
-find . -name *.obj -exec blender --background --python render_blender.py -- --output_folder /tmp {} \;
-To speed up the process, you can also use xargs to have multiple blender instances run in parallel using the -P argument
+    find . -name *.obj -exec blender --background --python render_blender.py -- --output_folder /tmp {} \;
 
-find . -name *.obj -print0 | xargs -0 -n1 -P3 -I {} blender --background --python render_blender.py -- --output_folder /t
+To speed up the process, you can also use xargs to have multiple blender instances run in parallel using the `-P` argument
+
+    find . -name *.obj -print0 | xargs -0 -n1 -P3 -I {} blender --background --python render_blender.py -- --output_folder /tmp {}
+
+## Example images
+
+Here is one chair model rendered with 30 different views:
+
+![Chairs](examples/out_without_specular.png)
+
+or a teapot with all available outputs
+
+![Teapots](examples/teapot_all_outputs.jpg)
