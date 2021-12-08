@@ -1,0 +1,17 @@
+## Instruction for running mixer
+
+### Install dataset
+The preprocessed files can be found [here](https://www.dropbox.com/sh/hxfnhwn4r2sp33e/AADeIqSBO00wXuzFJQYETopKa?dl=0).
+
+### Folder structure
+```
+|--mixer
+|--scorer
+|--dataset
+    |--processed_pcd
+```
+
+### Run training
+```
+python training.py
+```
