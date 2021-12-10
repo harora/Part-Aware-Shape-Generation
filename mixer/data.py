@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import Dataset
 from torch.utils.data._utils.collate import default_collate
 
-from utils import pc_normalize, farthest_point_sample
+from utils import pc_normalize_sphere, pc_normalize_cube, farthest_point_sample
 
 def collate_fn(batch):
     default_collate_items = ['transformations', 'mask']
@@ -54,7 +54,7 @@ class ChairDataset(Dataset):
                 # Subsample to have 2048 point per part
                 part = farthest_point_sample(part, 2048)
                 # Normalize and get transformations
-                part, transformation = pc_normalize(part)
+                part, transformation = pc_normalize_cube(part)
 
                 # Store the part mask and other info
                 part_mask[i] = 1
@@ -91,5 +91,13 @@ if __name__ == "__main__":
     train_dataset = ChairDataset(train_dir)
     train_dataloader = DataLoader(train_dataset, collate_fn=collate_fn, batch_size=batch_size, num_workers=num_workers, drop_last=True, shuffle=True)
 
+    max_val = 0
+    max_val2 = 0
     for batch in tqdm(train_dataloader):
-        batch['parts']
+        if np.max(batch['transformations'][:, :, :3].numpy()) > max_val:
+            max_val = np.max(batch['transformations'][:, :, :3].numpy())
+
+        if np.max(batch['transformations'][:, :, 3:].numpy()) > max_val2:
+            max_val2 = np.max(batch['transformations'][:, :, 3:].numpy())
+    print(max_val)
+    print(max_val2)

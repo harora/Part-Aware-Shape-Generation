@@ -13,14 +13,12 @@ class Assembler(nn.Module):
         self.scale_head = nn.Linear(256, self.transformation_params)
         self.trans_head = nn.Linear(256, self.transformation_params)
 
-        self.sigmoid = nn.Sigmoid()
-
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
 
-        scale = self.sigmoid(self.scale_head(x).reshape(-1, 5, 3))
+        scale = self.scale_head(x).reshape(-1, 5, 3)
         trans = self.trans_head(x).reshape(-1, 5, 3)
         transformation = torch.cat((scale, trans), -1)
         return transformation

@@ -18,7 +18,7 @@ if not os.path.exists(checkpoints_directory):
     os.makedirs(checkpoints_directory)
 
 # Settings
-epochs = 10
+epochs = 20
 bs = 8
 num_workers = 16
 hidden_dim = 256
