@@ -3,7 +3,7 @@ import glob
 import torch.utils.data
 from PIL import Image
 import torch
-
+import os
 from torchvision import transforms
 
 
@@ -11,18 +11,23 @@ class MultiviewImgDataset(torch.utils.data.Dataset):
 
     def __init__(self, root_dir, imgset="train", scale_aug=False, rot_aug=False, test_mode=False, \
                  num_models=0, num_views=12, shuffle=True):
-        self.classnames=['chair']
+        self.classnames=['negative', 'positive']
         self.root_dir = root_dir
         self.scale_aug = scale_aug
         self.rot_aug = rot_aug
         self.test_mode = test_mode
         self.num_views = num_views
         self.imgset = imgset
-        set_ = imgset
-        
+        self.set_ = imgset
         self.filepaths = []
+        # self.root_dir+'/'+set_+'/'+self.classnames[i]
         for i in range(len(self.classnames)):
-            all_files = sorted(glob.glob(self.root_dir+'/'+set_+'/*.png'))
+            if self.set_ == "test":
+                imgdir = self.root_dir+'/'+self.set_+'/**/'
+            else:
+                imgdir = os.path.join(self.root_dir,self.set_,self.classnames[i])
+            imgdir = os.path.join(imgdir, "*.png")
+            all_files = sorted(glob.glob(imgdir))
             ## Select subset for different number of views
             stride = int(12/self.num_views) # 12 6 4 3 2 1
             all_files = all_files[::stride]
@@ -63,8 +68,11 @@ class MultiviewImgDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         path = self.filepaths[idx*self.num_views]
-        class_name = path.split('/')[-3]
-        class_id = self.classnames.index(class_name)
+        if self.set_ is not "test":
+            class_name = path.split('/')[-3]
+            class_id = self.classnames.index(class_name)
+        else:
+            class_id = ""
         # Use PIL instead
         imgs = []
         for i in range(self.num_views):
