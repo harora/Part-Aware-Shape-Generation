@@ -8,23 +8,23 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
 class ChairDataset(Dataset):
-    def __init__(self):
+    def __init__(self, numviews : int = 3):
         super().__init__()
-
+        self.numviews = numviews
         self.positive_dir = '../dataset/LeChairs/chairs-data/positive'
         self.negative_dir = '../dataset/LeChairs/chairs-data/negative'
         self.positive_items = glob(self.positive_dir+'/*')
         self.negative_items = glob(self.negative_dir+'/*')
-        self.offset = len(self.positive_items) // 3
+        self.offset = len(self.positive_items) // self.numviews
 
     def __len__(self):
-        return len(self.positive_items) // 3 + len(self.negative_items) // 3
+        return len(self.positive_items) // self.numviews + len(self.negative_items) // self.numviews
 
     def __getitem__(self, idx):
         if idx >= self.offset:
             views = []
-            for i in range(3):
-                view_dir = self.negative_dir + '/' + '{:06d}.bmp'.format(3*(idx-self.offset)+i+1)
+            for i in range(self.numviews):
+                view_dir = self.negative_dir + '/' + '{:06d}.bmp'.format(self.numviews*(idx-self.offset)+i+1)
                 img = cv2.imread(view_dir)
                 views.append(img)
 
@@ -32,8 +32,8 @@ class ChairDataset(Dataset):
             views = np.array(views)
         else:
             views = []
-            for i in range(3):
-                view_dir = self.positive_dir + '/' + '{:06d}.bmp'.format(3*(idx)+i+1)
+            for i in range(self.numviews):
+                view_dir = self.positive_dir + '/' + '{:06d}.bmp'.format(self.numviews*(idx)+i+1)
                 img = cv2.imread(view_dir)
                 views.append(img)
 
