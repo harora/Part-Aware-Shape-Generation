@@ -45,7 +45,7 @@ assembler.load_state_dict(torch.load('./checkpoints/assembler_19.pth'))
 discriminator = get_model(1, normal_channel=False).cuda()
 optimizer_d = optim.Adam(discriminator.parameters())
 
-writer = SummaryWriter()
+writer = SummaryWriter('runs_gan')
 
 l1 = nn.L1Loss()
 for epoch in range(epochs):
@@ -83,7 +83,7 @@ for epoch in range(epochs):
             obj_f = obj_f.reshape(batch_size, -1)
             pred = assembler(obj_f)
 
-            real_pc = assemble_chairs(parts, mask, transformations).permute(0, 2, 1)
+            real_pc = batch['real_pc'].permute(0, 2, 1).float().cuda()
             recon_loss = l1(pred * mask, transformations * mask) * 100
             #################################################################################################################
 
@@ -119,25 +119,8 @@ for epoch in range(epochs):
             """
             Calculate discriminator loss
             """
-            fake_batch = assemble_from_multiple_batch(batch)
-            mask = fake_batch['mask'].float().cuda().unsqueeze(-1)
-            parts = fake_batch['parts'].permute(0, 2, 1).float().cuda()
-
-            part_f, _ = pointnet2(parts)
-            obj_f = torch.zeros((batch_size, 5, hidden_dim)).cuda()
-
-            select_idx = (fake_batch['mask'] == 1).nonzero(as_tuple=False)
-            select_idx = select_idx[:, 0] * 5 + select_idx[:, 1]
-            obj_f = obj_f.reshape(-1, hidden_dim)
-            obj_f[select_idx] = part_f
-            obj_f = obj_f.reshape(batch_size, 5, hidden_dim)
-
-            obj_f = obj_f.reshape(batch_size, -1)
-            pred = assembler(obj_f)
-
-            fake_pc = assemble_chairs(parts, mask, pred).permute(0, 2, 1)
-            fake_logit, fake_feat = discriminator(fake_pc)
-            real_logit, real_feat = discriminator(real_pc)
+            fake_logit, fake_feat = discriminator(fake_pc.detach())
+            real_logit, real_feat = discriminator(real_pc.detach())
 
             d_loss = -real_feat.mean() + fake_feat.mean()
             d_loss.backward()
@@ -223,7 +206,8 @@ for epoch in range(epochs):
             """
             Calculate discriminator loss
             """
-            real_logit, real_feat = discriminator(real_pc)
+            fake_logit, fake_feat = discriminator(fake_pc.detach())
+            real_logit, real_feat = discriminator(real_pc.detach())
 
             d_loss = -real_feat.mean() + fake_feat.mean()
             #################################################################################################################

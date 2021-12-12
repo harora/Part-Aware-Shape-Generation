@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import open3d as o3d
 from multiprocessing import Pool
@@ -11,6 +12,7 @@ def assemble_chairs(all_parts, all_mask, all_transformations):
     
     offset = 0
 
+    np_pc = []
     fake_pc = []
     for bs in range(batch_size):
         parts = all_parts[offset:offsets[:bs+1].sum()].permute(0, 2, 1)
@@ -34,9 +36,17 @@ def assemble_chairs(all_parts, all_mask, all_transformations):
 
                 pc.append(part)
         pc = torch.cat(pc)
-        sample_idx = farthest_point_sample_idx(pc.detach().cpu().numpy(), 2048)
-        pc = pc[sample_idx]
-        fake_pc.append(pc.unsqueeze(0))
+
+        item = {}
+        item['point'] = pc.detach().cpu().numpy()
+        item['npoint'] = 2048
+        np_pc.append(item)
+
+        fake_pc.append(pc)
+
+    with Pool(8) as p:
+        sample_idx = list(p.imap(farthest_point_sample_idx, np_pc))
+    fake_pc = [fake_pc[i][sample_idx[i]].unsqueeze(0) for i in range(len(sample_idx))]
     fake_pc = torch.cat(fake_pc, 0)
     return fake_pc
 
@@ -149,7 +159,7 @@ def farthest_point_sample(point, npoint):
     point = point[centroids.astype(np.int32)]
     return point
 
-def farthest_point_sample_idx(point, npoint):
+def farthest_point_sample_idx(data):
     """
     From https://github.com/yanx27/Pointnet_Pointnet2_pytorch/blob/master/data_utils/ModelNetDataLoader.py
 
@@ -159,6 +169,9 @@ def farthest_point_sample_idx(point, npoint):
     Return:
         centroids: sampled pointcloud index, [npoint, D]
     """
+    point = data['point']
+    npoint = data['npoint']
+
     N, D = point.shape
     xyz = point[:,:3]
     centroids = np.zeros((npoint,))
