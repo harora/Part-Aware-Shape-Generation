@@ -55,7 +55,7 @@ class ChairDataset(Dataset):
                 part = xyz[mask]
 
                 # Subsample to have 2048 point per part
-                part = farthest_point_sample(part, 1024)
+                part = farthest_point_sample(part, 2048)
                 # Normalize and get transformations
                 part, transformation = pc_normalize_cube(part)
 
