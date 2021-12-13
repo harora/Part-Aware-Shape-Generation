@@ -37,7 +37,8 @@ class MultiviewImgDataset(torch.utils.data.Dataset):
                 self.filepaths.extend(all_files)
             else:
                 self.filepaths.extend(all_files[:min(num_models,len(all_files))])
-
+            if self.set_ == "test":
+                break
         if shuffle==True:
             # permute
             rand_idx = np.random.permutation(int(len(self.filepaths)/num_views))

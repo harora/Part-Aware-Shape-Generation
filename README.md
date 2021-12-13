@@ -15,3 +15,9 @@ The preprocessed files can be found [here](https://www.dropbox.com/sh/hxfnhwn4r2
 ```
 python training.py
 ```
+### Run Scorer pipeline
+
+Input directory parameter is the parent directory where to find the .npz files.
+```
+$ scorer/run_scorer.sh ${INPUT_DIRECTORY}
+```
