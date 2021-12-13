@@ -66,9 +66,6 @@ if __name__ == "__main__":
     pcdPath = args.pathIn
     # pcdPath = "single_pcd"
     print(f"Processing pcds at {pcdPath}")
-    splitpath = os.path.join(pcdPath, "split.json")
-    with open(splitpath, 'r') as f:
-        splitjson = json.load(f)
     pointclouds = glob(os.path.join(pcdPath, '**', '*.npz'))
     
     cores = cpu_count()

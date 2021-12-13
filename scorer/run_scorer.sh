@@ -9,7 +9,7 @@ python --version
 cmd=`python scorer/shape_generator.py --pathIn ${inputdir}`
 # echo "Command is " ${inputdir}
 # # retVal=$
-if [[ ${cmd} -eq 0 ]]; then
+if [[ ${cmd} -ne 0 ]]; then
     echo "Success generating shapes from pcd"
 else
     echo "Error generating shapes from pcd"
@@ -23,7 +23,7 @@ views=4
 outputdir="${inputdir}/test"
 
 cmd=`scorer/generateviews.sh ${inputdir} ${views} ${outputdir}`
-if [[ ${cmd} -eq 0 ]]; then
+if [[ ${cmd} -ne 0 ]]; then
     echo "Success generating views"
 else
     echo "Error generating views"
@@ -40,8 +40,8 @@ batch_size=12
 cmd=`python scorer/test.py --imgdir ${inputdir} --angles ${angles} --views ${views} \
     --batchsize ${batch_size} --checkpointdir ${checkpointdir}`
 if [[ ${cmd} -eq 0 ]]; then
-    echo "Success generating views"
+    echo "Success running scorer"
 else
-    echo "Error generating views"
+    echo "Error running scorer"
 fi
 

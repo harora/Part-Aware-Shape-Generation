@@ -33,24 +33,27 @@ def runPredictions(views, inputdir, imgdir, batch_size):
     model.load_state_dict(torch.load(modelpath))
     model.eval()
     predictions = np.zeros((0, 1))
+    scores = np.zeros((0, 2))
     filenames = []
     for images, labels, fnames in tqdm(dataloader):
 
         images = images.float().to(device)
         batch_size, num_views, c, w, h = images.shape
 
-        pred = model(images.reshape(batch_size*num_views, c, w, h))
-        pred = torch.argmax(pred, axis=1)
+        pred_scores = model(images.reshape(batch_size*num_views, c, w, h))
+        pred = torch.argmax(pred_scores, axis=1)
         pred = np.expand_dims(pred.detach().numpy(),axis=1)
         predictions = np.concatenate([predictions,pred], axis=0)
+        pred_scores = pred_scores.detach().numpy()
+        scores = np.concatenate([scores,pred_scores], axis=0)
         filenames.extend(fnames[0])
     predictions = predictions.astype(int)
     predictions = predictions.squeeze(axis=1)
     results = []
     for i in range(0, predictions.shape[0]):
-        results.append((filenames[i], classes[predictions[i]]))
+        results.append((filenames[i], classes[predictions[i]], scores[i]))
 
-    results = pd.DataFrame(results, columns=["Image name", "Predicted Class"])
+    results = pd.DataFrame(results, columns=["Image name", "Predicted Class", "Scores"])
     results.to_csv(os.path.join(imgdir, "results.csv"))
     print("Done")
 
