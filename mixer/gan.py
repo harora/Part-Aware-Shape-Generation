@@ -6,6 +6,7 @@ from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
@@ -110,7 +111,9 @@ for epoch in range(epochs):
             fake_pc = assemble_chairs(parts, mask, pred).permute(0, 2, 1)
             fake_logit, fake_feat = discriminator(fake_pc)
 
-            g_loss = -fake_feat.mean() + recon_loss
+            fake_predict = F.softplus(-fake_logit).mean()
+
+            g_loss = fake_predict + recon_loss
             g_loss.backward()
             optimizer_g.step()
             #################################################################################################################
@@ -122,7 +125,12 @@ for epoch in range(epochs):
             fake_logit, fake_feat = discriminator(fake_pc.detach())
             real_logit, real_feat = discriminator(real_pc.detach())
 
-            d_loss = -real_feat.mean() + fake_feat.mean()
+            real_predict = F.softplus(-real_logit).mean()
+            real_predict = real_predict.mean() - 0.001 * (real_predict ** 2).mean()
+
+            fake_predict = F.softplus(fake_logit).mean()
+
+            d_loss = real_predict + fake_predict
             d_loss.backward()
             optimizer_d.step()
             #################################################################################################################
@@ -131,7 +139,7 @@ for epoch in range(epochs):
             total_g_loss += g_loss.item()
             total_d_loss += d_loss.item()
             total_recon_loss += recon_loss.item()
-            total_g_fake_loss += -fake_feat.mean().item()
+            total_g_fake_loss += -fake_predict.mean().item()
     total_g_loss /= count
     total_d_loss /= count
     total_recon_loss /= count
@@ -140,6 +148,8 @@ for epoch in range(epochs):
     writer.add_scalar('Loss/d_loss', total_d_loss, epoch)
     writer.add_scalar('Loss/recon_loss', total_recon_loss, epoch)
     writer.add_scalar('Loss/g_fake_loss', total_g_fake_loss, epoch)
+
+    print('Train Epoch: {}, total_g_loss: {}, total_d_loss: {}, total_recon_loss: {}'.format(epoch, total_g_loss, total_d_loss, total_recon_loss))
 
     count = 0
     total_g_loss = 0
@@ -172,7 +182,7 @@ for epoch in range(epochs):
             obj_f = obj_f.reshape(batch_size, -1)
             pred = assembler(obj_f)
 
-            real_pc = assemble_chairs(parts, mask, transformations).permute(0, 2, 1)
+            real_pc = batch['real_pc'].permute(0, 2, 1).float().cuda()
             recon_loss = l1(pred * mask, transformations * mask) * 100
             #################################################################################################################
 
@@ -199,7 +209,9 @@ for epoch in range(epochs):
             fake_pc = assemble_chairs(parts, mask, pred).permute(0, 2, 1)
             fake_logit, fake_feat = discriminator(fake_pc)
 
-            g_loss = -fake_feat.mean() + recon_loss
+            fake_predict = F.softplus(-fake_logit).mean()
+
+            g_loss = fake_predict + recon_loss
             #################################################################################################################
 
             #################################################################################################################
@@ -209,14 +221,19 @@ for epoch in range(epochs):
             fake_logit, fake_feat = discriminator(fake_pc.detach())
             real_logit, real_feat = discriminator(real_pc.detach())
 
-            d_loss = -real_feat.mean() + fake_feat.mean()
+            real_predict = F.softplus(-real_logit).mean()
+            real_predict = real_predict.mean() - 0.001 * (real_predict ** 2).mean()
+
+            fake_predict = F.softplus(fake_logit).mean()
+
+            d_loss = real_predict + fake_predict
             #################################################################################################################
 
             count += 1
             total_g_loss += g_loss.item()
             total_d_loss += d_loss.item()
             total_recon_loss += recon_loss.item()
-            total_g_fake_loss += -fake_feat.mean().item()
+            total_g_fake_loss += -fake_predict.mean().item()
     total_g_loss /= count
     total_d_loss /= count
     total_recon_loss /= count
@@ -228,4 +245,5 @@ for epoch in range(epochs):
 
     torch.save(pointnet2.state_dict(), checkpoints_directory+'/pointnet2_{}.pth'.format(epoch))
     torch.save(assembler.state_dict(), checkpoints_directory+'/assembler_{}.pth'.format(epoch))
-    print('Epoch: {}, Train Loss: {}, Val Loss: {}'.format(epoch, total_train_loss, total_val_loss))
+
+    print('Val Epoch: {}, total_g_loss: {}, total_d_loss: {}, total_recon_loss: {}'.format(epoch, total_g_loss, total_d_loss, total_recon_loss))
