@@ -58,9 +58,9 @@ def processPcdFile(pcdname):
     std_ = np.std(pts)
     pts = (pts-std_)/max_
     reconstructPcd(pts, outdir, name)
-    nn = os.path.join(outdir, name + ".txt")
-    with open(nn, 'w') as f:
-        np.savetxt(f, points['xyz'])
+    # nn = os.path.join(outdir, name + ".txt")
+    # with open(nn, 'w') as f:
+    #     np.savetxt(f, points['xyz'])
 if __name__ == "__main__":
     args = parser.parse_args()
     pcdPath = args.pathIn

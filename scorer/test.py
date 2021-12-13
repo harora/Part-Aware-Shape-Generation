@@ -42,9 +42,9 @@ def runPredictions(views, inputdir, imgdir, batch_size):
 
         pred_scores = model(images.reshape(batch_size*num_views, c, w, h))
         pred = torch.argmax(pred_scores, axis=1)
-        pred = np.expand_dims(pred.detach().numpy(),axis=1)
+        pred = np.expand_dims(pred.detach().cpu().numpy(),axis=1)
         predictions = np.concatenate([predictions,pred], axis=0)
-        pred_scores = pred_scores.detach().numpy()
+        pred_scores = pred_scores.detach().cpu().numpy()
         scores = np.concatenate([scores,pred_scores], axis=0)
         filenames.extend(fnames[0])
     predictions = predictions.astype(int)

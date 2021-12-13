@@ -38,7 +38,8 @@ parser.add_argument('--engine', type=str, default='BLENDER_EEVEE',
 argv = sys.argv[sys.argv.index("--") + 1:]
 args = parser.parse_args(argv)
 # 
-camera_locations = [(2, -0.5, -1.5), (0, 2.0, 1.1), (1, 0.5, 2.1)]
+camera_locations = [(3, 3, 3)]#, (0, 2.0, 1.1), (1, 0.5, 2.1)
+# camera_locations = [(2, -0.5, -1.5), (0, 2.0, 1.1), (1, 0.5, 2.1)]
 for idx, location in enumerate(camera_locations):
     # Set up rendering
     context = bpy.context
@@ -224,19 +225,21 @@ for idx, location in enumerate(camera_locations):
     name = os.path.basename(fname)
     outdir = os.path.join(args.output_folder, name)
     os.makedirs(outdir, exist_ok=True)
+    vert_angles = [0, 45, 90]
     for i in range(0, args.views):
         print("Rotation {}, {}".format((stepsize * i), math.radians(stepsize * i)))
-        render_file_path = os.path.join(outdir, f'{name}_r_{int(i * stepsize)}_cam_{idx}')
+        for angle in vert_angles:
+            render_file_path = os.path.join(outdir, f'{name}_r_{int(i * stepsize)}_angle_{angle}')
 
-        scene.render.filepath = render_file_path
+            scene.render.filepath = render_file_path
         # depth_file_output.file_slots[0].path = render_file_path + "_depth"
         # normal_file_output.file_slots[0].path = render_file_path + "_normal"
         # albedo_file_output.file_slots[0].path = render_file_path + "_albedo"
-        id_file_output.file_slots[0].path = render_file_path + "_id"
+            id_file_output.file_slots[0].path = render_file_path + "_id"
 
-        bpy.ops.render.render(write_still=True)  # render still
-
-        cam_empty.rotation_euler[2] += math.radians(stepsize)
+            bpy.ops.render.render(write_still=True)  # render still
+            cam_empty.rotation_euler[1] += math.radians(angle)
+            cam_empty.rotation_euler[2] += math.radians(stepsize)
 
     # For debugging the workflow
     #bpy.ops.wm.save_as_mainfile(filepath='debug.blend')
