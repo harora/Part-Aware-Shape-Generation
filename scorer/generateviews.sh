@@ -27,7 +27,8 @@ else
     noViews=$2
     echo "No of views is ${noViews}" 
 fi
+outputdir=$3
 # echo "Number of cores is ${number_cores}"
-echo "Finding files at ${inputdir}" 
+echo "Processing files at ${inputdir} using ${number_cores} processes"
 
-find ${inputdir}/*.obj -print0 | xargs -0 -n1 -P${number_cores} -I {} blender --background --python render_blender.py -- --views ${noViews} {}
+find ${inputdir}/**/*.obj -print0 | xargs -0 -n1 -P${number_cores} -I {} blender --background --python scorer/render_blender.py -- --output_folder ${outputdir} --views ${noViews} {} > blender.log

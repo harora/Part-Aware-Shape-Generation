@@ -80,5 +80,5 @@ for epoch in range(num_epochs):
 training_acc = np.array(training_acc)
 val_acc = round(np.array(val_acc).mean()*100, 3)
 model.to("cpu")
-torch.save(model.state_dict(), os.path.join(outputdir, "model.pth"))
+torch.save(model.state_dict(), os.path.join(outputdir, "model.pth"), _use_new_zipfile_serialization=False)
 print(f"Done. Mean training acc is {training_acc.mean()}, mean validation acc {val_acc}")
