@@ -9,7 +9,7 @@ from torch.utils.data._utils.collate import default_collate
 from utils import pc_normalize_sphere, pc_normalize_cube, farthest_point_sample
 
 def collate_fn(batch):
-    default_collate_items = ['transformations', 'mask']
+    default_collate_items = ['transformations', 'mask', 'real_pc']
 
     data = []
     all_parts = []
@@ -36,6 +36,9 @@ class ChairDataset(Dataset):
         xyz = data['xyz']
         labels = data['labels']
 
+        # Subsample entire point cloud
+        real_pc = farthest_point_sample(xyz, 2048)
+
         # Get the part labels the object has
         unique_labels = np.unique(labels)
         unique_labels = sorted(list(unique_labels))
@@ -52,7 +55,7 @@ class ChairDataset(Dataset):
                 part = xyz[mask]
 
                 # Subsample to have 2048 point per part
-                part = farthest_point_sample(part, 2048)
+                part = farthest_point_sample(part, 1024)
                 # Normalize and get transformations
                 part, transformation = pc_normalize_cube(part)
 
@@ -79,7 +82,7 @@ class ChairDataset(Dataset):
         #     pcd.points = o3d.utility.Vector3dVector(part)
         #     o3d.visualization.draw_geometries([pcd])
             
-        return {'parts': parts, 'transformations': transformations, 'mask': part_mask, 'unique_labels': unique_labels}
+        return {'parts': parts, 'transformations': transformations, 'mask': part_mask, 'unique_labels': unique_labels, 'real_pc': real_pc}
 
 if __name__ == "__main__":
     from tqdm import tqdm

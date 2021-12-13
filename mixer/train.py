@@ -65,7 +65,7 @@ for epoch in range(epochs):
         obj_f = obj_f.reshape(batch_size, -1)
         pred = assembler(obj_f)
 
-        recon_loss = l1(pred * mask, transformations * mask)
+        recon_loss = l1(pred * mask, transformations * mask) * 100
         loss = recon_loss
         loss.backward()
         optimizer.step()
@@ -98,7 +98,7 @@ for epoch in range(epochs):
             obj_f = obj_f.reshape(batch_size, -1)
             pred = assembler(obj_f)
 
-            recon_loss = l1(pred * mask, transformations * mask)
+            recon_loss = l1(pred * mask, transformations * mask) * 100
             loss = recon_loss
 
             count += 1
