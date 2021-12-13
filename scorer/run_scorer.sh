@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 PWD=`pwd`
-inputdir="single_pcd"
+inputdir=$1
+# inputdir="single_pcd"
 
 echo "Running shape generation from point cloud"
 python --version
