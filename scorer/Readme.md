@@ -20,9 +20,9 @@ Tested with Blender 2.9
 ## Example invocation
 
 To render a single `.obj` file, run
-
     blender --background --python scorer/render_blender.py -- --output_folder /tmp path_to_model.obj
     blender --background --python scorer/render_blender.py -- Chairs/chair_models/40230.obj
+    
 
 To get raw values that are easiest for further use, use `--format OPEN_EXR`. If the .obj file references any materials defined in a `.mtl` file, it is assumed to be in the same folder with the same name.
 

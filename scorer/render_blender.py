@@ -38,8 +38,9 @@ parser.add_argument('--engine', type=str, default='BLENDER_EEVEE',
 argv = sys.argv[sys.argv.index("--") + 1:]
 args = parser.parse_args(argv)
 # 
-camera_locations = [(3, 3, 3)]#, (0, 2.0, 1.1), (1, 0.5, 2.1)
-# camera_locations = [(2, -0.5, -1.5), (0, 2.0, 1.1), (1, 0.5, 2.1)]
+# camera_locations = [(10,0, 10)]#, (0, 2.0, 1.1), (1, 0.5, 2.1)
+camera_locations = [(2, -0.5, -1.5), (0, 2.0, 1.1), (1, 0.5, 2.1)]
+# camera_locations = [(0, 2.0, 1.1)]
 for idx, location in enumerate(camera_locations):
     # Set up rendering
     context = bpy.context
@@ -225,7 +226,7 @@ for idx, location in enumerate(camera_locations):
     name = os.path.basename(fname)
     outdir = os.path.join(args.output_folder, name)
     os.makedirs(outdir, exist_ok=True)
-    vert_angles = [0, 45, 90]
+    vert_angles = [0]
     for i in range(0, args.views):
         print("Rotation {}, {}".format((stepsize * i), math.radians(stepsize * i)))
         for angle in vert_angles:

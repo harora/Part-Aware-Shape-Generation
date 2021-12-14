@@ -5,10 +5,27 @@ from glob import glob
 import json
 import open3d as o3d
 from multiprocessing import Pool, cpu_count
-
+import mcubes
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-pathIn","--pathIn", type=str)
+
+def voxel_grid_to_sparse(voxel_grid):
+    voxels = voxel_grid.get_voxels()
+    coords = []
+    for voxel in voxels:
+        coord = np.array(voxel.grid_index).astype(np.int32)
+        coords.append(coord)
+    coords = np.array(coords)
+    return coords
+
+def sparse_to_volume(coords):
+    model = np.zeros(list(coords.max(0)+1))
+    for i in range(coords.shape[0]):
+        coord = coords[i]
+        x, y, z = coord[0], coord[1], coord[2]
+        model[x, y, z] = 1
+    return model
 
 def lod_mesh_export(mesh, lods):
     mesh_lods = []
@@ -22,21 +39,27 @@ def reconstructPcd(point_cloud, outputdir, fname):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(point_cloud[:,:3])
     pcd.normals = o3d.utility.Vector3dVector(np.zeros((1, 3)))
-
-    pcd.estimate_normals(
-            search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.9, max_nn=30))
-    # o3d.visualization.draw_geometries([pcd], point_show_normal=True)
-
-    pcd.orient_normals_consistent_tangent_plane(100)
-    # o3d.visualization.draw_geometries([pcd], point_show_normal=True)
-    
-    mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pcd, depth=8, width=0, scale=1.1, linear_fit=False)
-    mesh.paint_uniform_color([0.5, 0.5, 0.5])
-    print(mesh)
-    
+    voxel_grid = o3d.geometry.VoxelGrid.create_from_point_cloud(pcd, voxel_size=0.035)
+    # o3d.visualization.draw_geometries([voxel_grid])
+    coords = voxel_grid_to_sparse(voxel_grid)
+    volume = sparse_to_volume(coords)
+    vertices, triangles = mcubes.marching_cubes(volume, 0)
     fname = fname.replace('.npz', '')
     outputname = os.path.join(outputdir, f"{fname}.obj")
-    o3d.io.write_triangle_mesh(outputname, mesh)
+    mcubes.export_obj(vertices, triangles, outputname)
+    
+    # pcd.estimate_normals(
+    #         search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.9, max_nn=30))
+    # # o3d.visualization.draw_geometries([pcd], point_show_normal=True)
+
+    # pcd.orient_normals_consistent_tangent_plane(100)
+    # # o3d.visualization.draw_geometries([pcd], point_show_normal=True)
+    
+    # mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pcd, depth=8, width=0, scale=1.1, linear_fit=False)
+    # mesh.paint_uniform_color([0.5, 0.5, 0.5])
+    # print(mesh)
+    
+    # o3d.io.write_triangle_mesh(outputname, mesh)
     
     return
     # lods = [100000,50000,10000,1000,100]
@@ -52,6 +75,17 @@ def processPcdFile(pcdname):
     os.makedirs(outdir, exist_ok=True)
     name = os.path.basename(pcdname)
     print(f"Reading pcd from {pcdname}")
+    jsonfile = pcdname.replace(".npz", ".json")
+    if os.path.exists(jsonfile):
+        with open(jsonfile, 'r') as f:
+            data = json.load(f)
+        back = data['chair_back']
+        seat = data['chair_seat']
+        base = data['chair_base']
+        if back == seat or back == base or seat == base:
+            print(f"Not processing {pcdname}")
+            return
+
     points = np.load(pcdname)
     pts = points['xyz']
     max_ = np.max(pts)
